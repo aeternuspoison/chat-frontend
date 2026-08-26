@@ -22,7 +22,7 @@ export default function LoginScreen({ onLogin }) {
           <span className="material-icons">chat</span>
         </div>
 
-        <h1>Bem-vindo ao Etersec.chat</h1>
+        <h1>chat etersec</h1>
 
         <p>Entre para começar a conversar.</p>
 
