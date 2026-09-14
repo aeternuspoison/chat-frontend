@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import emoji1 from "../assets/emojis/emoji1.png";
 import emoji2 from "../assets/emojis/emoji2.png";
 import emoji3 from "../assets/emojis/emoji3.png";
@@ -9,13 +10,14 @@ import emoji7 from "../assets/emojis/emoji7.png";
 
 const EMOJIS = [
     { value: ":bye:", image: emoji1, alt: "bye" },
-    { value: ":heart:", image: emoji2,  char: "heart" },
+    { value: ":heart:", image: emoji2, char: "heart" },
     { value: ":why:", image: emoji3, char: "why" },
     { value: ":swing:", image: emoji4, char: "swing" },
     { value: ":aaa:", image: emoji5, char: "aaa" },
     { value: ":ghostface:", image: emoji6, char: "ghostface" },
     { value: ":grr:", image: emoji7, char: "grr" },
 ];
+
 
 const EMOJI_MAP = EMOJIS.reduce((map, emoji) => {
     map[emoji.value] = emoji;
@@ -25,6 +27,10 @@ const EMOJI_MAP = EMOJIS.reduce((map, emoji) => {
 const EMOJI_REGEX = /(:[a-zA-Z0-9_+-]+:)/g;
 
 function renderMessageContent(text) {
+    if (typeof text !== "string") {
+        return null;
+    }
+
     return text.split(EMOJI_REGEX).map((part, index) => {
         const emoji = EMOJI_MAP[part];
 
@@ -35,8 +41,8 @@ function renderMessageContent(text) {
                     src={emoji.image}
                     alt={emoji.alt}
                     style={{
-                        width: 28,
-                        height: 28,
+                        width: 32,
+                        height: 32,
                         verticalAlign: "middle",
                         display: "inline-block",
                     }}
@@ -52,7 +58,11 @@ function renderMessageContent(text) {
     });
 }
 
-export default function ChatScreen({ username, socket, onLogout }) {
+export default function ChatScreen({
+    username,
+    socket,
+    onLogout,
+}) {
     const [messages, setMessages] = useState([]);
     const [messageText, setMessageText] = useState("");
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -72,10 +82,49 @@ export default function ChatScreen({ username, socket, onLogout }) {
 
                 console.log("Mensagem recebida:", data);
 
+                if (data.type === "user_joined") {
+                    setMessages((previous) => [
+                        ...previous,
+                        {
+                            id: crypto.randomUUID(),
+                            type: "notification",
+                            text: `${data.username} rasgou o véu da ilusão.`,
+                        },
+                    ]);
+
+                    return;
+                }
+
+                if (data.type === "user_left") {
+                    setMessages((previous) => [
+                        ...previous,
+                        {
+                            id: crypto.randomUUID(),
+                            type: "notification",
+                            text: `${data.username} voltou para a ilusão da matéria.`,
+                        },
+                    ]);
+
+                    return;
+                }
+
+                if (
+                    !data.username ||
+                    typeof data.message !== "string"
+                ) {
+                    console.warn(
+                        "Mensagem WebSocket ignorada:",
+                        data
+                    );
+
+                    return;
+                }
+
                 setMessages((previous) => [
                     ...previous,
                     {
                         id: crypto.randomUUID(),
+                        type: "message",
                         username: data.username,
                         text: data.message,
                         own: data.username === username,
@@ -89,10 +138,16 @@ export default function ChatScreen({ username, socket, onLogout }) {
             }
         }
 
-        socket.addEventListener("message", handleMessage);
+        socket.addEventListener(
+            "message",
+            handleMessage
+        );
 
         return () => {
-            socket.removeEventListener("message", handleMessage);
+            socket.removeEventListener(
+                "message",
+                handleMessage
+            );
         };
     }, [socket, username]);
 
@@ -114,16 +169,24 @@ export default function ChatScreen({ username, socket, onLogout }) {
         function handleClickOutside(event) {
             if (
                 emojiPickerRef.current &&
-                !emojiPickerRef.current.contains(event.target)
+                !emojiPickerRef.current.contains(
+                    event.target
+                )
             ) {
                 setEmojiPickerOpen(false);
             }
         }
 
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener(
+            "mousedown",
+            handleClickOutside
+        );
 
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener(
+                "mousedown",
+                handleClickOutside
+            );
         };
     }, [emojiPickerOpen]);
 
@@ -137,11 +200,15 @@ export default function ChatScreen({ username, socket, onLogout }) {
         }
 
         if (!socket) {
-            console.error("WebSocket não existe.");
+            console.error(
+                "WebSocket não existe."
+            );
             return;
         }
 
-        if (socket.readyState !== WebSocket.OPEN) {
+        if (
+            socket.readyState !== WebSocket.OPEN
+        ) {
             console.error(
                 "WebSocket não está conectado.",
                 "readyState:",
@@ -156,9 +223,14 @@ export default function ChatScreen({ username, socket, onLogout }) {
             message: text,
         };
 
-        console.log("Enviando mensagem:", message);
+        console.log(
+            "Enviando mensagem:",
+            message
+        );
 
-        socket.send(JSON.stringify(message));
+        socket.send(
+            JSON.stringify(message)
+        );
 
         setMessageText("");
 
@@ -171,8 +243,13 @@ export default function ChatScreen({ username, socket, onLogout }) {
     }
 
     function handleEmojiSelect(emoji) {
-        setMessageText((previous) => `${previous}${emoji.value} `);
+        setMessageText(
+            (previous) =>
+                `${previous}${emoji.value} `
+        );
+
         setEmojiPickerOpen(false);
+
         inputRef.current?.focus();
     }
 
@@ -180,7 +257,10 @@ export default function ChatScreen({ username, socket, onLogout }) {
         <section
             className="chat-screen"
             id="chatScreen"
-            style={{ display: "flex" }}
+            style={{
+                display: "flex",
+                flexDirection: "column",
+            }}
         >
             <header className="chat-header">
                 <div className="chat-title">
@@ -215,23 +295,48 @@ export default function ChatScreen({ username, socket, onLogout }) {
             <div
                 id="chatMessages"
                 className="chat-messages"
+                style={{
+                    flex: 1,
+                    overflowY: "auto",
+                }}
             >
-                {messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={`message${
-                            message.own ? " own" : ""
-                        }`}
-                    >
-                        <strong>
-                            {message.username}
-                        </strong>
+                {messages.map((message) => {
 
-                        <span>
-                            {renderMessageContent(message.text)}
-                        </span>
-                    </div>
-                ))}
+                    if (
+                        message.type ===
+                        "notification"
+                    ) {
+                        return (
+                            <div
+                                key={message.id}
+                                className="chat-notification"
+                            >
+                                {message.text}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div
+                            key={message.id}
+                            className={`message${
+                                message.own
+                                    ? " own"
+                                    : ""
+                            }`}
+                        >
+                            <strong>
+                                {message.username}
+                            </strong>
+
+                            <span>
+                                {renderMessageContent(
+                                    message.text
+                                )}
+                            </span>
+                        </div>
+                    );
+                })}
 
                 <div ref={messagesEndRef} />
             </div>
@@ -240,7 +345,12 @@ export default function ChatScreen({ username, socket, onLogout }) {
                 id="chatForm"
                 onSubmit={handleSubmit}
             >
-                <div className="message-input" style={{ position: "relative" }}>
+                <div
+                    className="message-input"
+                    style={{
+                        position: "relative",
+                    }}
+                >
                     <input
                         type="text"
                         id="messageInput"
@@ -260,7 +370,11 @@ export default function ChatScreen({ username, socket, onLogout }) {
                     <button
                         type="button"
                         title="Emojis"
-                        onClick={() => setEmojiPickerOpen((open) => !open)}
+                        onClick={() =>
+                            setEmojiPickerOpen(
+                                (open) => !open
+                            )
+                        }
                     >
                         <span className="material-icons">
                             mood
@@ -273,6 +387,7 @@ export default function ChatScreen({ username, socket, onLogout }) {
                             className="emoji-picker"
                             style={{
                                 position: "absolute",
+                                width: "100%",
                                 bottom: "100%",
                                 right: 0,
                                 marginBottom: 8,
@@ -282,35 +397,56 @@ export default function ChatScreen({ username, socket, onLogout }) {
                                 background: "#fff",
                                 border: "1px solid #ddd",
                                 borderRadius: 8,
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                boxShadow:
+                                    "0 2px 8px rgba(0,0,0,0.15)",
                             }}
                         >
-                            {EMOJIS.map((emoji) => (
-                                <button
-                                    key={emoji.value}
-                                    type="button"
-                                    title={emoji.value}
-                                    onClick={() => handleEmojiSelect(emoji)}
-                                    style={{
-                                        border: "none",
-                                        background: "transparent",
-                                        cursor: "pointer",
-                                        fontSize: 20,
-                                        lineHeight: 1,
-                                        padding: 4,
-                                    }}
-                                >
-                                    {emoji.image ? (
-                                        <img
-                                            src={emoji.image}
-                                            alt={emoji.alt}
-                                            style={{ width: 32, height: 32 }}
-                                        />
-                                    ) : (
-                                        emoji.char
-                                    )}
-                                </button>
-                            ))}
+                            {EMOJIS.map(
+                                (emoji) => (
+                                    <button
+                                        key={
+                                            emoji.value
+                                        }
+                                        type="button"
+                                        title={
+                                            emoji.value
+                                        }
+                                        onClick={() =>
+                                            handleEmojiSelect(
+                                                emoji
+                                            )
+                                        }
+                                        style={{
+                                            border:
+                                                "none",
+                                            background:
+                                                "transparent",
+                                            cursor:
+                                                "pointer",
+                                            fontSize: 20,
+                                            lineHeight: 1,
+                                            padding: 4,
+                                        }}
+                                    >
+                                        {emoji.image ? (
+                                            <img
+                                                src={
+                                                    emoji.image
+                                                }
+                                                alt={
+                                                    emoji.alt
+                                                }
+                                                style={{
+                                                    width: 32,
+                                                    height: 32,
+                                                }}
+                                            />
+                                        ) : (
+                                            emoji.char
+                                        )}
+                                    </button>
+                                )
+                            )}
                         </div>
                     )}
 

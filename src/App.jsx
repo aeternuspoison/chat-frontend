@@ -30,6 +30,7 @@ export default function App() {
 
         ws.addEventListener("error", (error) => {
             console.error("Erro no WebSocket:", error);
+
             setConnected(false);
         });
 
@@ -66,14 +67,47 @@ export default function App() {
             return;
         }
 
+        /*
+         * Avisa o backend que o usuário entrou.
+         */
+        const joinMessage = {
+            type: "join",
+            username: cleanName,
+        };
+
+        console.log("Usuário entrando:", joinMessage);
+
+        socketRef.current.send(
+            JSON.stringify(joinMessage)
+        );
+
         setUsername(cleanName);
         setLoggedIn(true);
     }
 
     function handleLogout() {
+  
+        if (
+            socketRef.current &&
+            socketRef.current.readyState === WebSocket.OPEN &&
+            username
+        ) {
+            const leaveMessage = {
+                type: "leave",
+                username: username,
+            };
+
+            console.log("Usuário saindo:", leaveMessage);
+
+            socketRef.current.send(
+                JSON.stringify(leaveMessage)
+            );
+        }
+
         setUsername("");
         setLoggedIn(false);
     }
+    
 
     return (
         <main className="container">

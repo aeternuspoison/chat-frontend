@@ -16,10 +16,16 @@ export default function LoginScreen({ onLogin }) {
     }
 
     return (
-        <section
+      <section
             className="login-screen"
             id="loginScreen"
             style={{
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                minHeight: "100vh",
                 padding: "24px",
                 boxSizing: "border-box",
             }}
@@ -98,7 +104,21 @@ export default function LoginScreen({ onLogin }) {
                         Entrar
                     </button>
                 </form>
+                
             </div>
+        <footer
+            style={{
+                position: "absolute",
+                bottom: "20px",
+                left: "0",
+                width: "100%",
+                textAlign: "center",
+                fontSize: "14px",
+            }}
+        >
+            <p>&copy; 2026 - AeternusPoison <br/> Todos os direitos reservados.</p>
+        </footer>
         </section>
+        
     );
-}
+    }
