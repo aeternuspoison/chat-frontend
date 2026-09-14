@@ -1,53 +1,104 @@
 import { useState } from "react";
 
 export default function LoginScreen({ onLogin }) {
-  const [name, setName] = useState("");
+    const [name, setName] = useState("");
 
-  function handleSubmit(event) {
-    event.preventDefault();
+    function handleSubmit(event) {
+        event.preventDefault();
 
-    const trimmed = name.trim();
+        const trimmed = name.trim();
 
-    if (!trimmed) {
-      return;
+        if (!trimmed) {
+            return;
+        }
+
+        onLogin(trimmed);
     }
 
-    onLogin(trimmed);
-  }
+    return (
+        <section
+            className="login-screen"
+            id="loginScreen"
+            style={{
+                padding: "24px",
+                boxSizing: "border-box",
+            }}
+        >
+            <div
+                className="login-box"
+                style={{
+                    width: "100%",
+                    maxWidth: "420px",
+                    padding: "32px 24px",
+                    boxSizing: "border-box",
+                }}
+            >
+                <div className="login-icon">
+                    <span className="material-icons">
+                        chat
+                    </span>
+                </div>
 
-  return (
-    <section className="login-screen" id="loginScreen">
-      <div className="login-box">
-        <div className="login-icon">
-          <span className="material-icons">chat</span>
-        </div>
+                <h1>pleroma chat</h1>
 
-        <h1>pleroma chat</h1>
+                <p>Conversa Privada sem registros <br/> (só nos meus logs...)</p>
 
-        <p>Entre para começar a conversar.</p>
+                <form
+                    id="loginForm"
+                    onSubmit={handleSubmit}
+                    style={{
+                        width: "100%",
+                        marginTop: "28px",
+                    }}
+                >
+                    <div
+                        className="input-wrapper"
+                        style={{
+                            width: "100%",
+                            minHeight: "54px",
+                            boxSizing: "border-box",
+                        }}
+                    >
+                        <span className="material-icons">
+                            person_outline
+                        </span>
 
-        <form id="loginForm" onSubmit={handleSubmit} style={{  margin: "10px"}}>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Digite seu nome"
+                            value={name}
+                            onChange={(event) =>
+                                setName(event.target.value)
+                            }
+                            autoComplete="name"
+                            autoCapitalize="words"
+                            enterKeyHint="go"
+                            required
+                            style={{
+                                fontSize: "16px",
+                                minHeight: "52px",
+                            }}
+                        />
+                    </div>
 
-          <div className="input-wrapper">
-            <span className="material-icons">person_outline</span>
-
-            <input
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Digite seu nome"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit">
-            <span className="material-icons">login</span>
-            Entrar
-          </button>
-        </form>
-      </div>
-    </section>
-  );
+                    <button
+                        type="submit"
+                        style={{
+                            width: "100%",
+                            minHeight: "54px",
+                            marginTop: "18px",
+                            fontSize: "16px",
+                        }}
+                    >
+                        <span className="material-icons">
+                            login
+                        </span>
+                        Entrar
+                    </button>
+                </form>
+            </div>
+        </section>
+    );
 }
