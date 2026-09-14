@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import LoginScreen from "./components/LoginScreen";
 import ChatScreen from "./components/ChatScreen";
 
-const WEBSOCKET_URL = "ws://localhost:8080";
+const WEBSOCKET_URL = "wss://chat-backend-cgr1.onrender.com";
 
 export default function App() {
   const [username, setUsername] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  
   const [socket, setSocket] = useState(null);
 
   const socketRef = useRef(null);
