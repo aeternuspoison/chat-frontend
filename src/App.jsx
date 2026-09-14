@@ -1,61 +1,96 @@
 import { useEffect, useRef, useState } from "react";
+
 import LoginScreen from "./components/LoginScreen";
 import ChatScreen from "./components/ChatScreen";
 
-const WEBSOCKET_URL = "wss://chat-backend-cgr1.onrender.com";
+const WEBSOCKET_URL = "wss://plemora-chat.onrender.com/";
 
 export default function App() {
-  const [username, setUsername] = useState("");
-  const [loggedIn, setLoggedIn] = useState(false);
-  
-  const [socket, setSocket] = useState(null);
+    const [username, setUsername] = useState("");
+    const [loggedIn, setLoggedIn] = useState(false);
+    const [socket, setSocket] = useState(null);
+    const [connected, setConnected] = useState(false);
 
-  const socketRef = useRef(null);
+    const socketRef = useRef(null);
 
-  useEffect(() => {
-    const ws = new WebSocket(WEBSOCKET_URL);
+    useEffect(() => {
+        console.log("Tentando conectar ao WebSocket...");
+        console.log("URL:", WEBSOCKET_URL);
 
-    ws.addEventListener("open", () => {
-      console.log("Conectado ao WebSocket");
-      setSocket(ws);
-    });
+        const ws = new WebSocket(WEBSOCKET_URL);
 
-    ws.addEventListener("error", (error) => {
-      console.error("Erro no WebSocket:", error);
-    });
+        socketRef.current = ws;
 
-    ws.addEventListener("close", () => {
-      console.log("Conexão com o servidor encerrada");
-    });
+        ws.addEventListener("open", () => {
+            console.log("Conectado ao WebSocket");
 
-    socketRef.current = ws;
+            setSocket(ws);
+            setConnected(true);
+        });
 
-    return () => {
-      ws.close();
-    };
-  }, []);
+        ws.addEventListener("error", (error) => {
+            console.error("Erro no WebSocket:", error);
+            setConnected(false);
+        });
 
-  function handleLogin(name) {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      alert("Não foi possível conectar ao servidor.");
-      return;
+        ws.addEventListener("close", (event) => {
+            console.log("Conexão com o servidor encerrada.");
+            console.log("Código:", event.code);
+            console.log("Motivo:", event.reason);
+
+            setConnected(false);
+            setSocket(null);
+        });
+
+        return () => {
+            console.log("Encerrando WebSocket...");
+
+            ws.close();
+
+            socketRef.current = null;
+        };
+    }, []);
+
+    function handleLogin(name) {
+        const cleanName = name.trim();
+
+        if (!cleanName) {
+            return;
+        }
+
+        if (
+            !socketRef.current ||
+            socketRef.current.readyState !== WebSocket.OPEN
+        ) {
+            alert("O servidor ainda não está conectado.");
+            return;
+        }
+
+        setUsername(cleanName);
+        setLoggedIn(true);
     }
 
-    setUsername(name);
-    setLoggedIn(true);
-  }
+    function handleLogout() {
+        setUsername("");
+        setLoggedIn(false);
+    }
 
-  function handleLogout() {
-    setUsername("");
-    setLoggedIn(false);
-  }
+    return (
+        <main className="container">
+            {!loggedIn && (
+                <LoginScreen
+                    onLogin={handleLogin}
+                    connected={connected}
+                />
+            )}
 
-  return (
-    <main className="container">
-      {!loggedIn && <LoginScreen onLogin={handleLogin} />}
-      {loggedIn && (
-        <ChatScreen username={username} socket={socket} onLogout={handleLogout} />
-      )}
-    </main>
-  );
+            {loggedIn && socket && (
+                <ChatScreen
+                    username={username}
+                    socket={socket}
+                    onLogout={handleLogout}
+                />
+            )}
+        </main>
+    );
 }

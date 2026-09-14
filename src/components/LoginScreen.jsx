@@ -22,12 +22,11 @@ export default function LoginScreen({ onLogin }) {
           <span className="material-icons">chat</span>
         </div>
 
-        <h1>chat etersec</h1>
+        <h1>pleroma chat</h1>
 
         <p>Entre para começar a conversar.</p>
 
-        <form id="loginForm" onSubmit={handleSubmit}>
-          <label htmlFor="username">Username</label>
+        <form id="loginForm" onSubmit={handleSubmit} style={{  margin: "10px"}}>
 
           <div className="input-wrapper">
             <span className="material-icons">person_outline</span>
